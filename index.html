@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffd9e8">
+<title>翰林B3U3+U4 單字大冒險</title>
+<style>
+  :root{
+    --p1:#ffe3f0; --p2:#e3ecff; --p3:#e0fff2;
+    --card:#ffffff;
+    --ink:#4a3f55;
+    --ink2:#8b7f99;
+    --line:#f0e4f5;
+    --ok:#3ecf8e; --bad:#ff7a9c; --gold:#ffc94d;
+    --sh:0 10px 26px rgba(160,120,180,.18);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,var(--p1) 0%,var(--p2) 50%,var(--p3) 100%);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:16px 14px 70px;position:relative;z-index:1;}
+
+  .screen{display:none;animation:in .3s ease;}
+  .screen.on{display:block;}
+  @keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  h1{font-size:27px;margin:6px 0 2px;text-align:center;line-height:1.3;}
+  h2{font-size:20px;margin:0 0 12px;}
+  .sub{text-align:center;color:var(--ink2);font-size:13px;margin-bottom:16px;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px;margin-bottom:14px;box-shadow:var(--sh);}
+  .mascot{font-size:56px;text-align:center;display:block;animation:bob 2.2s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+
+  button{font-family:inherit;cursor:pointer;border:none;color:var(--ink);}
+  .btn{display:block;width:100%;padding:15px 16px;border-radius:18px;font-size:17px;font-weight:800;
+       background:#fff;border:2px solid var(--line);box-shadow:var(--sh);transition:transform .12s;min-height:54px;}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:linear-gradient(135deg,#ff9ec4,#b39dff);color:#fff;border:none;}
+  .btn.mint{background:linear-gradient(135deg,#7ef0c0,#63d3ff);color:#0b5c4a;border:none;}
+  .btn.ghost{background:rgba(255,255,255,.7);box-shadow:none;}
+  .btn.sm{width:auto;display:inline-block;padding:11px 16px;font-size:15px;min-height:0;}
+  .btn[disabled]{opacity:.5;pointer-events:none;}
+  .row{display:flex;gap:10px;}
+  .row .btn{flex:1;}
+
+  input[type=text]{width:100%;padding:15px;font-size:18px;font-family:inherit;color:var(--ink);
+    background:#fff;border:2px solid var(--line);border-radius:18px;outline:none;}
+  input[type=text]:focus{border-color:#b39dff;}
+  label{display:block;font-size:14px;color:var(--ink2);margin:0 0 8px;font-weight:700;}
+
+  .topbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink2);flex-wrap:wrap;}
+  .chip{background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:800;color:var(--ink);}
+  .grow{flex:1;}
+
+  .badge{display:inline-block;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;background:#f5edff;}
+  .badge.ok{background:#ddfaee;color:#0e9c66;}
+  .badge.bad{background:#ffe7ee;color:#e5487a;}
+  .badge.gold{background:#fff4d6;color:#c78a00;}
+
+  /* 關卡卡片 */
+  .mode{display:flex;align-items:center;gap:14px;text-align:left;padding:16px;margin-bottom:12px;}
+  .mode .ic{font-size:38px;}
+  .mode .tx b{display:block;font-size:19px;}
+  .mode .tx span{font-size:13px;color:var(--ink2);}
+  .mode .go{margin-left:auto;font-size:22px;color:#b39dff;font-weight:900;}
+  .mode .st{display:inline-block;margin-top:5px;font-size:12px;font-weight:800;color:#0e9c66;background:#ddfaee;padding:3px 9px;border-radius:999px;}
+  .mode .st.doing{color:#c78a00;background:#fff4d6;}
+  .mode .st.none{color:var(--ink2);background:#f3eef8;}
+
+  /* 題目 */
+  .qhead{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink2);margin-bottom:10px;font-weight:800;}
+  .bar{height:10px;background:#fff;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px;}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff9ec4,#b39dff);transition:width .3s;}
+  .qcard{text-align:center;}
+  .zh{font-size:27px;font-weight:900;margin:8px 0 4px;line-height:1.45;}
+  .en{font-size:32px;font-weight:900;color:#7b5cff;letter-spacing:1px;margin:8px 0 2px;word-break:break-word;}
+  .speakbig{font-size:52px;background:#fff;border:2px solid var(--line);border-radius:50%;width:92px;height:92px;margin:12px auto 4px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;}
+  .speakbig:active{transform:scale(.93);}
+
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .ch{padding:15px 10px;border-radius:20px;background:#fff;border:2px solid var(--line);font-size:16px;font-weight:800;box-shadow:var(--sh);line-height:1.45;}
+  .ch:active{transform:scale(.96);}
+  .ch.right{background:#ddfaee;border-color:var(--ok);color:#0e9c66;}
+  .ch.wrong{background:#ffe7ee;border-color:var(--bad);color:#e5487a;}
+
+  /* 拼字填空提示 */
+  .mask{font-family:"Courier New",monospace;font-size:27px;font-weight:900;color:#7b5cff;letter-spacing:2px;
+    background:#f7f2ff;border:2px dashed #cdbdf7;border-radius:18px;padding:12px 10px;margin:10px 0 2px;
+    line-height:1.7;word-break:break-word;}
+
+  .fb{margin-top:14px;padding:14px;border-radius:20px;font-weight:800;font-size:16px;display:none;line-height:1.7;}
+  .fb.show{display:block;animation:in .25s ease;}
+  .fb.ok{background:#ddfaee;color:#0e9c66;}
+  .fb.bad{background:#ffe7ee;color:#e5487a;}
+  .fb .sp{display:inline-block;margin-left:6px;font-size:20px;vertical-align:-3px;}
+
+  .hintcard{margin-top:12px;background:#fff9e8;border:2px dashed #ffd479;border-radius:20px;padding:12px;text-align:left;font-size:15px;display:none;line-height:1.9;}
+  .hintcard.show{display:block;animation:in .25s ease;}
+  .hintcard b{color:#c78a00;}
+
+  /* 回顧 / 成績 */
+  .rev{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.6;}
+  .rev .r{font-size:20px;}
+  .rev b{display:block;font-size:16px;}
+  .rev small{color:var(--ink2);}
+
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--sh);font-size:14px;}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:center;}
+  th{background:#f7f0ff;font-size:13px;color:#7b5cff;}
+  td.n{text-align:left;font-weight:800;}
+  tr:last-child td{border-bottom:none;}
+  .total{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+  .tbox{background:#fff;border-radius:20px;padding:14px;text-align:center;box-shadow:var(--sh);border:1.5px solid var(--line);}
+  .tbox b{display:block;font-size:30px;color:#7b5cff;}
+  .tbox span{font-size:13px;color:var(--ink2);}
+
+  .comment{background:#fff;border-radius:20px;padding:16px;box-shadow:var(--sh);border:1.5px solid var(--line);font-size:16px;font-weight:800;line-height:1.7;}
+  .wronglist{margin-top:12px;font-size:14px;line-height:2;color:var(--ink2);}
+  .wronglist b{color:#e5487a;}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(24px);opacity:0;
+    background:rgba(74,63,85,.96);color:#fff;padding:13px 20px;border-radius:999px;font-size:15px;font-weight:800;
+    box-shadow:var(--sh);transition:.3s;z-index:99;max-width:92vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .cloudline{display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;color:#0e9c66;
+    background:#ddfaee;border-radius:999px;padding:8px 14px;font-weight:800;margin-top:10px;}
+
+  /* 彩帶 */
+  .cf{position:fixed;top:-30px;font-size:22px;z-index:80;pointer-events:none;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
+
+  .foot{text-align:center;font-size:12px;color:var(--ink2);margin-top:18px;line-height:1.8;}
+  @media (max-width:380px){
+    .zh{font-size:23px}.en{font-size:26px}.mask{font-size:22px}.choices{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ========== 1. 輸入名字 ========== -->
+<section class="screen on" id="sc-name">
+  <span class="mascot">🐣</span>
+  <h1>翰林B3U3+U4 單字大冒險</h1>
+  <p class="sub">B3U3＋B3U4 兩單元 41 字混合｜用手機就能玩｜🎧 聽力・📝 字義・✏️ 拼字 三關挑戰</p>
+  <div class="card">
+    <label>輸入你的英文名字（記住你的進度）</label>
+    <input type="text" id="inName" placeholder="例：Andy" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="20">
+    <div style="height:12px"></div>
+    <button class="btn primary" onclick="startGame()">🚀 出發冒險</button>
+    <div id="resumeBox" style="display:none;margin-top:12px"></div>
+  </div>
+  <p class="foot">🎧 聽力｜📝 字義｜✏️ 拼字<br>每完成一關會自動記住進度</p>
+</section>
+
+<!-- ========== 2. 主選單 ========== -->
+<section class="screen" id="sc-menu">
+  <div class="topbar">
+    <span class="chip">🙋 <span id="mName">-</span></span>
+    <span class="chip gold" id="mProg">進度 0/6 輪</span>
+    <span class="grow"></span>
+  </div>
+  <span class="mascot">🗺️</span>
+  <h1>選擇關卡</h1>
+  <p class="sub">每關 41 題分兩輪（21 題＋20 題），先挑一關吧！</p>
+
+  <button class="btn mode" id="lv0" onclick="openLevel(0)"></button>
+  <button class="btn mode" id="lv1" onclick="openLevel(1)"></button>
+  <button class="btn mode" id="lv2" onclick="openLevel(2)"></button>
+
+  <div class="row" style="margin-top:6px">
+    <button class="btn mint" onclick="openReport()">📊 總成績單</button>
+    <button class="btn ghost" onclick="restartAll()">🔄 重新開始</button>
+  </div>
+  <p class="foot">成績會記在這台裝置上，換人玩請按 🔄 重新開始</p>
+</section>
+
+<!-- ========== 3. 一題一畫面 ========== -->
+<section class="screen" id="sc-quiz">
+  <div class="topbar">
+    <button class="chip" onclick="quitQuiz()">✕ 離開</button>
+    <span class="chip" id="qLevelName">🎧 聽力</span>
+    <span class="grow"></span>
+    <span class="chip" id="qRound">第 1 輪</span>
+  </div>
+  <div class="bar"><i id="qBar" style="width:0%"></i></div>
+  <div class="qhead"><span id="qNo">第 1 / 21 題</span><span id="qScore">得分 0</span></div>
+
+  <div class="card qcard">
+    <!-- 關1 聽力：看英文＋播英文，選中文 -->
+    <div id="box-listen">
+      <span class="mascot" style="font-size:44px">👂</span>
+      <p style="font-size:16px;font-weight:800;margin:4px 0 0">看英文、聽發音，選出中文意思</p>
+      <div class="en" id="lsEn">word</div>
+      <button class="speakbig" onclick="playWord(true)">🔊</button>
+      <div class="choices" id="chList"></div>
+    </div>
+
+    <!-- 關2 字義：看中文，選英文 -->
+    <div id="box-meaning" style="display:none">
+      <span class="mascot" style="font-size:44px">🧠</span>
+      <p style="font-size:16px;font-weight:800;margin:4px 0 0">看中文意思，選出正確英文</p>
+      <div class="zh" id="mnZh">中文</div>
+      <div class="choices" id="mnList"></div>
+    </div>
+
+    <!-- 關3 拼字：看中文＋填空提示，打英文 -->
+    <div id="box-spell" style="display:none">
+      <span class="mascot" style="font-size:44px">🔤</span>
+      <p style="font-size:16px;font-weight:800;margin:4px 0 0">照中文和填空提示，打出英文</p>
+      <div class="zh" id="spZh">中文</div>
+      <div class="mask" id="spMask">a_ _ _ e</div>
+      <button class="btn sm ghost" style="margin-top:10px" onclick="playWord(true)">🔊 再聽一次</button>
+      <div style="height:10px"></div>
+      <input type="text" id="spIn" placeholder="打上完整英文"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div style="height:12px"></div>
+      <button class="btn primary" onclick="checkSpell()">送出 ✅</button>
+      <div id="spWrong" style="display:none">
+        <p style="color:#e5487a;font-weight:800;margin:12px 0 0" id="spWrongTx"></p>
+        <button class="btn mint" style="margin-top:8px" onclick="retrySpell()">再試一次 💪</button>
+      </div>
+    </div>
+
+    <div class="fb" id="fbBox"></div>
+    <button class="btn primary" id="nextBtn" style="display:none;margin-top:12px" onclick="nextQ()">下一題 →</button>
+  </div>
+</section>
+
+<!-- ========== 4. 結算＋逐題回顧（輪／關共用） ========== -->
+<section class="screen" id="sc-round">
+  <span class="mascot">🎉</span>
+  <h1 id="rvTitle">這一輪完成啦！</h1>
+  <div class="total">
+    <div class="tbox"><b id="rvScore">0</b><span id="rvScoreTx">本輪得分</span></div>
+    <div class="tbox"><b id="rvPct">0%</b><span>正確率</span></div>
+  </div>
+  <h2 style="margin-top:16px">📖 逐題回顧</h2>
+  <div id="rvList"></div>
+  <div class="row" id="rvRow1">
+    <button class="btn primary" id="rvNext" onclick="nextRound()">▶️ 下一輪</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn ghost" id="rvAgain" onclick="openLevel(state.level)">🔁 再玩一次這一關</button>
+    <button class="btn" onclick="go('sc-menu')">🏠 回主選單</button>
+  </div>
+</section>
+
+<!-- ========== 5. 總成績單 ========== -->
+<section class="screen" id="sc-report">
+  <div class="topbar">
+    <button class="chip" onclick="go('sc-menu')">‹ 回主選單</button>
+    <span class="chip">🙋 <span id="rpName">-</span></span>
+    <span class="grow"></span>
+    <span class="chip gold" id="rpProg">0/3 關</span>
+  </div>
+  <span class="mascot">🏅</span>
+  <h1>總成績單</h1>
+  <p class="sub">🎧 聽力・📝 字義・✏️ 拼字，每關 41 題</p>
+  <table id="rpTable"></table>
+  <div class="total">
+    <div class="tbox"><b id="rpTotal">0</b><span>總分（滿分 <span id="rpMax">1230</span>）</span></div>
+    <div class="tbox"><b id="rpPct">0%</b><span>百分比</span></div>
+  </div>
+  <div class="comment" id="rpComment">💪 還沒開始冒險，快去玩一關吧！</div>
+  <div class="wronglist" id="rpWrong"></div>
+  <div style="height:14px"></div>
+  <div class="row">
+    <button class="btn mint" onclick="restartAll()">🔄 重新開始</button>
+    <button class="btn primary" onclick="go('sc-menu')">🎮 繼續冒險</button>
+  </div>
+  <div class="cloudline" id="rpCloud" style="display:none">💾 進度已存在這台裝置</div>
+</section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================================================================
+   翰林B3U3+U4 單字大冒險（兩單元混合版）  —  前端（GitHub Pages，HTTPS）
+   後端：Google Apps Script（寫入「單字拼字遊戲成績」試算表）
+   流程：名字 → 主選單（3 關）→ 一題一畫面 → 結算逐題回顧 → 主選單
+   每關 41 題（B3U3 20 ＋ B3U4 21），拆兩輪：第 1 輪 21 題、第 2 輪 20 題
+   ================================================================== */
+
+/* ---------- ★★★ 部署設定 ★★★ ---------- */
+var CONFIG = {
+  // 本版＝純前端（不上傳成績，存 localStorage）。日後要上傳試算表再填 GAS /exec 網址。
+  GAS_URL: "",
+  SHEET_NAME: "單字拼字遊戲成績",
+  MAX_POINT: 10 // 每題分數
+};
+/* -------------------------------------------------- */
+
+/* ---------- 單字庫（翰林B3U3 20 字 ＋ 翰林B3U4 21 字 ＝ 41 字，依 .doc 原文） ---------- */
+var WORDS = [
+  /* --- 翰林B3U3（20 字） --- */
+  { en:"wealthy",         zh:"富裕的" },
+  { en:"valuable",        zh:"貴重的；寶貴的" },
+  { en:"influential",     zh:"有影響力的" },
+  { en:"wonder",          zh:"想知道，納悶" },
+  { en:"jewelry",         zh:"珠寶，首飾" },
+  { en:"suggestion",      zh:"建議" },
+  { en:"sparkling",       zh:"閃閃發光的" },
+  { en:"admire",          zh:"仰慕，敬佩；欣賞" },
+  { en:"praise",          zh:"稱讚" },
+  { en:"charming",        zh:"迷人的，有魅力的" },
+  { en:"dare",            zh:"敢於" },
+  { en:"debt",            zh:"負債" },
+  { en:"force",           zh:"強迫，迫使" },
+  { en:"poverty",         zh:"貧困，貧窮" },
+  { en:"admit",           zh:"承認" },
+  { en:"replace",         zh:"取代，更換" },
+  { en:"cost a fortune",  zh:"非常昂貴" },
+  { en:"pay off",         zh:"償還（欠款）" },
+  { en:"run into",        zh:"偶遇（某人）" },
+  { en:"at most",         zh:"最多，至多" },
+  /* --- 翰林B3U4（21 字） --- */
+  { en:"legal",           zh:"法律的；合法的" },
+  { en:"issue",           zh:"問題，議題" },
+  { en:"guilty",          zh:"有罪的，犯罪的；內疚的" },
+  { en:"insult",          zh:"侮辱，辱罵" },
+  { en:"remove",          zh:"移除" },
+  { en:"refuse",          zh:"拒絕" },
+  { en:"invade",          zh:"侵犯；侵略" },
+  { en:"permission",      zh:"允許，許可" },
+  { en:"apologize",       zh:"道歉" },
+  { en:"gender",          zh:"性別" },
+  { en:"pat",             zh:"輕拍，撫拍" },
+  { en:"behavior",        zh:"行為，舉止" },
+  { en:"physical",        zh:"身體的" },
+  { en:"aware",           zh:"意識到的，知道的" },
+  { en:"reliable",        zh:"可信賴的" },
+  { en:"due to",          zh:"因為，由於" },
+  { en:"hit the roof",    zh:"極度生氣" },
+  { en:"look through",    zh:"翻看，翻找" },
+  { en:"had better",      zh:"最好" },
+  { en:"tell A from B",   zh:"區分，辨別" },
+  { en:"by accident",     zh:"不小心，無意間" }
+];
+
+/* ---------- 3 關 ---------- */
+var LEVELS = [
+  { em:"🎧", name:"聽力大挑戰", desc:"看英文＋聽發音，選中文", type:"listen" },
+  { em:"📝", name:"字義小達人", desc:"看中文意思，選英文",     type:"meaning" },
+  { em:"✏️", name:"拼字小高手", desc:"看中文和填空，打英文",   type:"spell" }
+];
+
+var ROUNDS = [21, 20];              // 每關兩輪：21 題 + 20 題（共 41 題）
+var TOTAL_ROUNDS = ROUNDS.length * LEVELS.length;   // 6 輪
+var FULL_MAX = WORDS.length * CONFIG.MAX_POINT * LEVELS.length;  // 41×10×3 = 1230
+
+/* ================= 進度（localStorage） ================= */
+var LS_SAVE = "b3u3u4_save_v2";
+var LS_DEV  = "b3u3u4_device_v1";
+
+function deviceCode(){
+  var d = localStorage.getItem(LS_DEV);
+  if(!d){
+    d = "D" + Date.now().toString(36).toUpperCase().slice(-4) +
+        Math.random().toString(36).toUpperCase().replace(".","").slice(0,3);
+    localStorage.setItem(LS_DEV, d);
+  }
+  return d;
+}
+function loadSave(){
+  try{ return JSON.parse(localStorage.getItem(LS_SAVE)) || null; }catch(e){ return null; }
+}
+function writeSave(){
+  localStorage.setItem(LS_SAVE, JSON.stringify({ name:state.name, results:state.results }));
+}
+
+var state = { name:"", level:0, round:0, qi:0, qList:[], order:[], cur:null,
+              score:0, attempt:0, answered:false, detail:[], results:{} };
+
+/* ================= 畫面切換 ================= */
+function go(id){
+  var els = document.querySelectorAll(".screen");
+  for(var i=0;i<els.length;i++) els[i].classList.remove("on");
+  document.getElementById(id).classList.add("on");
+  window.scrollTo(0,0);
+}
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+
+/* ---------- 關卡進度 ---------- */
+function rKey(l, r){ return "l" + l + "r" + r; }
+function roundDone(l, r){ return !!state.results[rKey(l, r)]; }
+function levelDone(l){ return roundDone(l,0) && roundDone(l,1); }
+function levelTotal(l){
+  var s = 0;
+  for(var r=0;r<ROUNDS.length;r++) if(roundDone(l,r)) s += state.results[rKey(l,r)].score;
+  return s;
+}
+function levelWrong(l){
+  var out = [];
+  for(var r=0;r<ROUNDS.length;r++){
+    var d = state.results[rKey(l,r)];
+    if(!d) continue;
+    (d.detail||[]).forEach(function(x){ if(!x.ok && out.indexOf(x.en) < 0) out.push(x.en); });
+  }
+  return out;
+}
+function doneRounds(){
+  var n = 0;
+  for(var l=0;l<LEVELS.length;l++) for(var r=0;r<ROUNDS.length;r++) if(roundDone(l,r)) n++;
+  return n;
+}
+function doneLevels(){
+  var n = 0;
+  for(var l=0;l<LEVELS.length;l++) if(levelDone(l)) n++;
+  return n;
+}
+function refreshProg(){
+  var rt = "進度 " + doneRounds() + "/" + TOTAL_ROUNDS + " 輪";
+  var a=document.getElementById("mProg"); if(a) a.textContent=rt;
+  var c=document.getElementById("rpProg"); if(c) c.textContent=doneLevels()+"/"+LEVELS.length+" 關";
+  // 主選單關卡卡片狀態
+  for(var l=0;l<LEVELS.length;l++){
+    var el = document.getElementById("lv"+l);
+    var st;
+    if(levelDone(l))       st = '<span class="st">✔ ' + levelTotal(l) + '/' + (WORDS.length*CONFIG.MAX_POINT) + ' 分</span>';
+    else if(roundDone(l,0))st = '<span class="st doing">▶️ 進行中（1/2 輪）</span>';
+    else                   st = '<span class="st none">還沒玩</span>';
+    el.innerHTML = '<span class="ic">'+LEVELS[l].em+'</span>' +
+      '<span class="tx"><b>第'+(l+1)+'關 '+LEVELS[l].name+'</b><span>'+LEVELS[l].desc+'</span><br>'+st+'</span>' +
+      '<span class="go">›</span>';
+  }
+}
+
+/* ================= 1. 名字頁 ================= */
+function startGame(){
+  var n = document.getElementById("inName").value.trim();
+  if(!n){ toast("請先輸入英文名字哦～"); return; }
+  state.name = n;
+  document.getElementById("mName").textContent = n;
+  writeSave();
+  go("sc-menu"); refreshProg();
+}
+(function initName(){
+  var s = loadSave();
+  if(s && s.name){
+    var box = document.getElementById("resumeBox");
+    var n = s.results ? Object.keys(s.results).length : 0;
+    box.style.display = "block";
+    box.innerHTML = '<p style="font-size:14px;color:var(--ink2);font-weight:800;margin:0 0 8px">'+
+      '👋 上次玩到「'+s.name+'」，已完成 '+n+'/'+TOTAL_ROUNDS+' 輪，要繼續嗎？</p>'+
+      '<button class="btn mint" onclick="resume(\''+String(s.name).replace(/'/g,"")+'\')">▶️ 繼續接著玩</button>';
+    document.getElementById("inName").value = s.name;
+  }
+})();
+function resume(name){
+  var s = loadSave();
+  state.name = name;
+  state.results = (s && s.results) ? s.results : {};
+  document.getElementById("mName").textContent = name;
+  go("sc-menu"); refreshProg();
+  toast("歡迎回來！已完成 " + doneRounds() + "/" + TOTAL_ROUNDS + " 輪");
+}
+function restartAll(){
+  if(!confirm("要清空所有成績、從頭開始嗎？\n（🔄重新開始才會清空）")) return;
+  state.results = {};
+  writeSave();
+  refreshProg();
+  toast("已重新開始，加油！");
+}
+
+/* ================= 2. 開始一關（41 題 → 兩輪） ================= */
+function openLevel(li){
+  state.level = li;
+  state.order = shuffle(WORDS.map(function(_, i){ return i; }));  // 41 題亂數排序
+  state.round = 0;
+  startRound();
+}
+function nextRound(){ state.round++; startRound(); }
+
+function startRound(){
+  var start = 0;
+  for(var r=0; r<state.round; r++) start += ROUNDS[r];
+  state.qList = state.order.slice(start, start + ROUNDS[state.round]);
+  state.qi = 0;
+  state.score = 0;
+  state.detail = [];
+  go("sc-quiz");
+  showQ();
+}
+function quitQuiz(){
+  stopAllAudio();
+  if(confirm("要離開這一關嗎？（這一輪的進度不會保存）")){ go("sc-menu"); refreshProg(); }
+}
+
+/* ================= 3. 一題一畫面 ================= */
+function showQ(){
+  var wi = state.qList[state.qi];
+  state.cur = WORDS[wi];
+  state.attempt = 0;
+  state.answered = false;
+
+  document.getElementById("qLevelName").textContent = LEVELS[state.level].em + " " + LEVELS[state.level].name;
+  document.getElementById("qRound").textContent = "第 " + (state.round+1) + " 輪";
+  document.getElementById("qNo").textContent = "第 " + (state.qi+1) + " / " + state.qList.length + " 題";
+  document.getElementById("qScore").textContent = "得分 " + state.score;
+  document.getElementById("qBar").style.width = (state.qi / state.qList.length * 100) + "%";
+  document.getElementById("fbBox").className = "fb";
+  document.getElementById("nextBtn").style.display = "none";
+
+  var type = LEVELS[state.level].type;
+  document.getElementById("box-listen").style.display  = type==="listen"  ? "block" : "none";
+  document.getElementById("box-meaning").style.display = type==="meaning" ? "block" : "none";
+  document.getElementById("box-spell").style.display   = type==="spell"   ? "block" : "none";
+
+  if(type==="listen")  setupListen();
+  if(type==="meaning") setupMeaning();
+  if(type==="spell")   setupSpell();
+}
+
+/* ---------- TTS ---------- */
+function speak(text){
+  try{
+    if(!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; u.rate = .9;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function playWord(){ if(state.cur) speak(state.cur.en); }
+function stopAllAudio(){
+  try{ speechSynthesis.cancel(); }catch(e){}
+  clearTimeout(speak._t1); clearTimeout(speak._t2);
+}
+
+/* ---------- 選擇題共用（關1 聽力 / 關2 字義） ---------- */
+function buildChoices(wrapId, items, textOf, onClick){
+  var wrap = document.getElementById(wrapId);
+  wrap.innerHTML = "";
+  items.forEach(function(w){
+    var b = document.createElement("button");
+    b.className = "ch";
+    b.setAttribute("data-en", w.en);
+    b.innerHTML = textOf(w);
+    b.onclick = function(){ onClick(w, b); };
+    wrap.appendChild(b);
+  });
+}
+function markCorrect(wrapId){   // 把「正確答案」那一顆標綠
+  var btns = document.querySelectorAll("#" + wrapId + " .ch");
+  for(var i=0;i<btns.length;i++)
+    if(btns[i].getAttribute("data-en") === state.cur.en) btns[i].classList.add("right");
+}
+function distractors(cur, textKey){
+  var pool = WORDS.filter(function(w){ return w.en !== cur.en; });
+  return shuffle(pool).slice(0, 3);
+}
+/* 答題：第 1 次錯只提示可再選，第 2 次錯才判錯 */
+function answerChoice(picked, btn){
+  if(state.answered) return;
+  var ok = picked.en === state.cur.en;
+  var wrapId = LEVELS[state.level].type === "listen" ? "chList" : "mnList";
+
+  if(ok){
+    state.answered = true;
+    btn.classList.add("right");
+    var gain = state.attempt === 0 ? CONFIG.MAX_POINT : 5;
+    state.score += gain;
+    state.detail.push({ en:state.cur.en, zh:state.cur.zh, yours:pickedText(picked), ok:true, gain:gain });
+    feedback(true, (state.attempt===0 ? "答對了！" : "也對啦！") + " " + praise(), state.cur.en);
+    confetti();
+    finishQ();
+  }else{
+    btn.classList.add("wrong");
+    if(state.attempt === 0){
+      state.attempt++;
+      feedback(false, "差一點！再想想看 🤔");
+      setTimeout(function(){
+        var btns = document.querySelectorAll("#" + wrapId + " .ch");
+        for(var i=0;i<btns.length;i++) btns[i].classList.remove("wrong");
+      }, 700);
+      return;
+    }
+    state.answered = true;
+    markCorrect(wrapId);                 // 揭曉正確答案
+    state.detail.push({ en:state.cur.en, zh:state.cur.zh, yours:pickedText(picked), ok:false, gain:0 });
+    feedback(false, "答案是 <b>" + state.cur.en + "</b><br>「" + state.cur.zh + "」記起來 💗", state.cur.en);
+    finishQ();
+  }
+}
+function pickedText(w){
+  return LEVELS[state.level].type === "listen" ? w.zh : w.en;
+}
+
+/* ---------- 關1：聽力（看英文＋播英文 → 選中文） ---------- */
+function setupListen(){
+  document.getElementById("lsEn").textContent = state.cur.en;
+  var opts = shuffle([state.cur].concat(distractors(state.cur)));
+  buildChoices("chList", opts, function(w){ return w.zh; }, function(w, b){ answerChoice(w, b); });
+  setTimeout(function(){ speak(state.cur.en); }, 450);
+}
+
+/* ---------- 關2：字義（看中文 → 選英文） ---------- */
+function setupMeaning(){
+  document.getElementById("mnZh").textContent = state.cur.zh;
+  var opts = shuffle([state.cur].concat(distractors(state.cur)));
+  buildChoices("mnList", opts, function(w){ return w.en; }, function(w, b){ answerChoice(w, b); });
+}
+
+/* ---------- 關3：拼字（看中文＋填空提示 → 打英文） ---------- */
+/* 填空提示：每個字給字首＋字尾，例如 apple → a_ _ _ e；片語逐字處理 */
+function maskWord(en){
+  return en.split(" ").map(function(tok){
+    if(tok.length <= 2) return tok;
+    return tok.charAt(0) + "_ ".repeat(tok.length - 2) + tok.charAt(tok.length - 1);
+  }).join("  ");
+}
+function setupSpell(){
+  document.getElementById("spZh").textContent = state.cur.zh;
+  document.getElementById("spMask").textContent = maskWord(state.cur.en);
+  var inp = document.getElementById("spIn");
+  inp.value = "";
+  inp.disabled = false;
+  document.getElementById("spWrong").style.display = "none";
+  clearTimeout(speak._t1); clearTimeout(speak._t2);
+  // 進題 0.4 秒自動先唸一次
+  speak._t1 = setTimeout(function(){ speak(state.cur.en); }, 400);
+  // 2.6 秒沒動靜（沒打字）再唸一次
+  speak._t2 = setTimeout(function(){ if(inp.value.trim()==="") speak(state.cur.en); }, 2600);
+  setTimeout(function(){ inp.focus(); }, 250);
+}
+function norm(s){
+  return String(s||"").toLowerCase().replace(/[.,!?;:'"]/g,"").replace(/\s+/g," ").trim();
+}
+function checkSpell(){
+  if(state.answered) return;
+  var inp = document.getElementById("spIn");
+  var val = inp.value;
+  if(!val.trim()){ toast("先打上答案再送出哦～"); return; }
+  clearTimeout(speak._t1); clearTimeout(speak._t2);   // 送答就取消自動重播
+  var ok = norm(val) === norm(state.cur.en);          // 比對忽略大小寫
+  if(ok){
+    state.answered = true;
+    var gain = state.attempt===0 ? CONFIG.MAX_POINT : 5;
+    state.score += gain;
+    state.detail.push({ en:state.cur.en, zh:state.cur.zh, yours:val.trim(), ok:true, gain:gain });
+    feedback(true, (state.attempt===0?"答對了！":"也對啦！") + " " + praise(), state.cur.en);
+    confetti();
+    inp.disabled = true;
+    finishQ();
+  }else{
+    state.attempt++;
+    inp.value = "";
+    if(state.attempt === 1){
+      document.getElementById("spWrong").style.display = "block";
+      document.getElementById("spWrongTx").textContent = "拼法不太對，看清楚填空再試一次～";
+      speak(state.cur.en);
+      inp.focus();
+    }else{
+      state.answered = true;
+      state.detail.push({ en:state.cur.en, zh:state.cur.zh, yours:val.trim(), ok:false, gain:0 });
+      document.getElementById("spWrong").style.display = "none";
+      feedback(false, "正確答案：<b>" + state.cur.en + "</b><br>多打一次就記住了 ✍️", state.cur.en);
+      inp.disabled = true;
+      finishQ();
+    }
+  }
+}
+function retrySpell(){ document.getElementById("spIn").focus(); }
+
+/* ================= 4. 題目收尾 ================= */
+function praise(){
+  var a = ["太強了吧！","超棒的！","你是單字王！","漂亮！","真厲害！","完美！"];
+  return a[Math.floor(Math.random()*a.length)];
+}
+function feedback(ok, html, word){
+  var f = document.getElementById("fbBox");
+  f.className = "fb show " + (ok ? "ok" : "bad");
+  f.innerHTML = (ok ? "✅ " : "💡 ") + html +
+    (word ? ' <button class="sp" onclick="speak(\'' + String(word).replace(/'/g,"") + '\')" title="再聽一次">🔊</button>' : "");
+}
+function finishQ(){
+  document.getElementById("qScore").textContent = "得分 " + state.score;
+  document.getElementById("qBar").style.width = ((state.qi+1) / state.qList.length * 100) + "%";
+  document.getElementById("nextBtn").style.display = "block";
+}
+function nextQ(){
+  stopAllAudio();
+  state.qi++;
+  if(state.qi >= state.qList.length){ endRound(); return; }
+  showQ();
+}
+
+/* ================= 5. 輪／關結算＋逐題回顧 ================= */
+function endRound(){
+  var key = rKey(state.level, state.round);
+  var max = state.qList.length * CONFIG.MAX_POINT;
+  state.results[key] = { score:state.score, max:max, detail:state.detail };
+  writeSave();
+  refreshProg();
+  document.getElementById("nextBtn").style.display = "none";   // 收尾：隱藏下一題鈕
+
+  var isLevelEnd = (state.round === ROUNDS.length - 1);
+  // 💾 純前端版：只存 localStorage，不上傳
+
+  // 標題與分數
+  document.getElementById("rvTitle").textContent = isLevelEnd
+    ? LEVELS[state.level].em + " 第" + (state.level+1) + "關 完成啦！"
+    : "第 " + (state.round+1) + " 輪完成啦！";
+  document.getElementById("rvScoreTx").textContent = isLevelEnd ? "本關總分" : "本輪得分";
+  document.getElementById("rvScore").textContent = isLevelEnd
+    ? levelTotal(state.level) + "/" + (WORDS.length * CONFIG.MAX_POINT)
+    : state.score + "/" + max;
+  document.getElementById("rvPct").textContent =
+    (max ? Math.round(state.score / max * 100) : 0) + "%";
+
+  // 逐題回顧（關卡結束時回顧兩輪全部 41 題）
+  var list = document.getElementById("rvList"); list.innerHTML = "";
+  var details = isLevelEnd
+    ? (state.results[rKey(state.level,0)].detail || []).concat(state.results[rKey(state.level,1)].detail || [])
+    : state.detail;
+  details.forEach(function(d){
+    var div = document.createElement("div");
+    div.className = "rev";
+    div.innerHTML = '<span class="r">' + (d.ok ? "✅" : "❌") + '</span><div><b>' +
+      d.en + '</b><small>中文：' + d.zh + '</small><br><small>你的答案：' +
+      (d.yours || "—") + '　' + (d.ok ? '<span style="color:#0e9c66">+'+d.gain+'</span>' : '<span style="color:#e5487a">0 分</span>') + '</small></div>';
+    list.appendChild(div);
+  });
+
+  // 按鈕：第一輪 → 下一輪；最後一輪 → 再玩一次
+  document.getElementById("rvRow1").style.display = isLevelEnd ? "none" : "flex";
+  document.getElementById("rvNext").textContent = "▶️ 下一輪（" + ROUNDS[state.round+1] + " 題）";
+  document.getElementById("rvAgain").style.display = isLevelEnd ? "block" : "none";
+
+  go("sc-round");
+}
+
+
+/* ================= 6. 總成績單 ================= */
+function openReport(){
+  document.getElementById("rpName").textContent = state.name || "-";
+  var html = "<tr><th>關卡</th><th>分數</th><th>滿分</th><th>狀態</th></tr>";
+  var fullLvMax = WORDS.length * CONFIG.MAX_POINT;
+  for(var l=0;l<LEVELS.length;l++){
+    var done = levelDone(l);
+    html += "<tr><td class='n'>" + LEVELS[l].em + " 第" + (l+1) + "關 " + LEVELS[l].name +
+      "<br><small style='color:var(--ink2);font-weight:400'>" + LEVELS[l].desc + "</small></td>" +
+      "<td>" + (done ? levelTotal(l) : (roundDone(l,0) ? "進行中" : "—")) + "</td>" +
+      "<td>" + fullLvMax + "</td>" +
+      "<td>" + (done ? '<span class="badge ok">完成</span>'
+                     : (roundDone(l,0) ? '<span class="badge gold">1/2 輪</span>'
+                                       : '<span class="badge">未玩</span>')) + "</td></tr>";
+  }
+  document.getElementById("rpTable").innerHTML = html;
+
+  var total = 0;
+  for(var l2=0;l2<LEVELS.length;l2++) if(levelDone(l2)) total += levelTotal(l2);
+  var pct = Math.round(total / FULL_MAX * 100);
+
+  document.getElementById("rpMax").textContent = FULL_MAX;
+  document.getElementById("rpTotal").textContent = total;
+  document.getElementById("rpPct").textContent = pct + "%";
+
+  var c = "💪 還沒開始冒險，快去玩一關吧！";
+  if(doneLevels() > 0){
+    if(pct >= 90) c = "🌟 單字大冒險高手！太厲害了！";
+    else if(pct >= 75) c = "👏 很棒！再挑戰一次就滿分啦！";
+    else if(pct >= 60) c = "💪 不錯喔，把錯字練熟就更穩了！";
+    else c = "📚 先複習單字，再來挑戰一次吧！";
+  }
+  document.getElementById("rpComment").textContent = c;
+
+  var uniq = [];
+  for(var l3=0;l3<LEVELS.length;l3++){
+    levelWrong(l3).forEach(function(x){ if(uniq.indexOf(x) < 0) uniq.push(x); });
+  }
+  var w = document.getElementById("rpWrong");
+  w.innerHTML = uniq.length
+    ? "🚩 錯誤單字清單（快複習這些）：<br><b>" + uniq.join("、") + "</b>"
+    : (doneLevels() ? "🎉 目前沒有錯字，完美！" : "");
+
+  document.getElementById("rpCloud").style.display = doneLevels() ? "flex" : "none";
+  refreshProg();
+  go("sc-report");
+}
+
+/* ================= 7. 上傳（合併寫入） ================= */
+function buildPayload(){
+  var scores = {}, wrongs = {}, total = 0, allWrong = [];
+  for(var l=0;l<LEVELS.length;l++){
+    var col = "關" + (l+1);
+    if(levelDone(l)){
+      scores[col] = levelTotal(l);
+      var w = levelWrong(l);
+      if(w.length) wrongs[col] = w.join("、");
+      total += levelTotal(l);
+      w.forEach(function(x){ if(allWrong.indexOf(x) < 0) allWrong.push(x); });
+    }else{
+      scores[col] = "";   // 空欄位 → 後端保留舊值
+    }
+  }
+  var pct = Math.round(total / FULL_MAX * 100);
+  var comment = pct>=90 ? "單字大冒險高手" : pct>=75 ? "很棒，再挑戰滿分" :
+                pct>=60 ? "不錯，錯字再練" : pct>0 ? "先複習單字再來一戰" : "";
+
+  return {
+    id: deviceCode() + "|" + state.name,   // 紀錄ID＝裝置碼｜名字
+    name: state.name,
+    sheet: CONFIG.SHEET_NAME,
+    scores: scores,
+    wrongs: wrongs,
+    total: total,
+    pct: pct,
+    comment: comment,
+    allWrong: allWrong.join("、")
+  };
+}
+
+/* 上傳功能已停用（純前端版，成績存 localStorage）。
+   日後若要接回試算表：把 CONFIG.GAS_URL 填上 GAS /exec 網址，
+   並把 buildPayload() 接回 fetch POST 即可（舊版實作見 git 歷史）。 */
+
+/* ================= 彩帶 ================= */
+function confetti(){
+  var emo = ["🎉","✨","🌟","💖","🎊","⭐","💛","🌈"];
+  for(var i=0;i<22;i++){
+    (function(i){
+      setTimeout(function(){
+        var s = document.createElement("span");
+        s.className = "cf";
+        s.textContent = emo[Math.floor(Math.random()*emo.length)];
+        s.style.left = (Math.random()*100) + "vw";
+        s.style.animationDuration = (1.6 + Math.random()*1.4) + "s";
+        s.style.fontSize = (16 + Math.random()*20) + "px";
+        document.body.appendChild(s);
+        setTimeout(function(){ s.remove(); }, 3200);
+      }, i*55);
+    })(i);
+  }
+}
+
+/* ================= Enter 送出 ================= */
+document.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    if(document.getElementById("sc-name").classList.contains("on")) startGame();
+    else if(document.getElementById("sc-quiz").classList.contains("on") &&
+            LEVELS[state.level].type === "spell") checkSpell();
+  }
+});
+</script>
+</body>
+</html>
